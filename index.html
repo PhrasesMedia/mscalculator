@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Stress Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c5f4f;
+            --secondary: #f4a261;
+            --accent: #e76f51;
+            --success: #90be6d;
+            --danger: #e63946;
+            --warning: #f4a261;
+            --sky: #a8dadc;
+            --cream: #fef9f3;
+            --text: #264653;
+            --text-light: #6b7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: linear-gradient(to bottom, #e0f4ff 0%, #fef9f3 40%, #fef9f3 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 
+                0 4px 6px rgba(0,0,0,0.02),
+                0 20px 60px rgba(0,0,0,0.08);
+            overflow: hidden;
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero {
+            position: relative;
+            height: 320px;
+            background: linear-gradient(135deg, #a8dadc 0%, #81c4d4 100%);
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* Sky and clouds */
+        .sky-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, #a8dadc 0%, #c5e5e8 100%);
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.7;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .cloud1 {
+            width: 80px;
+            height: 30px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .cloud2 {
+            width: 100px;
+            height: 35px;
+            top: 30%;
+            right: 15%;
+            animation-delay: 5s;
+        }
+
+        .cloud3 {
+            width: 60px;
+            height: 25px;
+            top: 15%;
+            right: 30%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(20px) translateY(-10px); }
+        }
+
+        /* Ground */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(to bottom, #90be6d 0%, #7ab05d 100%);
+            border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+        }
+
+        /* House illustration */
+        .house {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 180px;
+            z-index: 10;
+        }
+
+        .house-body {
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            width: 160px;
+            height: 120px;
+            background: #f4ebe3;
+            border: 3px solid var(--text);
+            border-radius: 4px;
+        }
+
+        .house-roof {
+            position: absolute;
+            bottom: 115px;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 100px solid transparent;
+            border-right: 100px solid transparent;
+            border-bottom: 70px solid #e76f51;
+            filter: drop-shadow(0 -2px 0 var(--text));
+        }
+
+        .house-door {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 60px;
+            background: var(--primary);
+            border: 2px solid var(--text);
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .house-window {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fff5e6;
+            border: 2px solid var(--text);
+            border-radius: 2px;
+        }
+
+        .house-window:nth-child(1) {
+            top: 30px;
+            left: 20px;
+        }
+
+        .house-window:nth-child(2) {
+            top: 30px;
+            right: 20px;
+        }
+
+        .window-cross {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 2px;
+            background: var(--text);
+        }
+
+        .window-cross::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            height: 30px;
+            background: var(--text);
+        }
+
+        /* Family figures */
+        .family {
+            position: absolute;
+            bottom: 100px;
+            right: 25%;
+            display: flex;
+            gap: 15px;
+            z-index: 5;
+        }
+
+        .person {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: wave 3s infinite ease-in-out;
+        }
+
+        .person:nth-child(1) { animation-delay: 0s; }
+        .person:nth-child(2) { animation-delay: 0.5s; }
+        .person:nth-child(3) { animation-delay: 1s; }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .person-head {
+            width: 18px;
+            height: 18px;
+            background: #ffcdb2;
+            border: 2px solid var(--text);
+            border-radius: 50%;
+            margin-bottom: 2px;
+        }
+
+        .person-body {
+            width: 24px;
+            height: 30px;
+            background: var(--secondary);
+            border: 2px solid var(--text);
+            border-radius: 4px;
+        }
+
+        .person:nth-child(2) .person-body {
+            background: #e76f51;
+        }
+
+        .person:nth-child(3) {
+            transform: scale(0.7);
+        }
+
+        .person:nth-child(3) .person-body {
+            background: #90be6d;
+        }
+
+        /* Tree */
+        .tree {
+            position: absolute;
+            bottom: 100px;
+            left: 15%;
+            z-index: 5;
+        }
+
+        .tree-trunk {
+            width: 12px;
+            height: 30px;
+            background: #8b5a3c;
+            border: 2px solid var(--text);
+            margin: 0 auto;
+            border-radius: 2px;
+        }
+
+        .tree-leaves {
+            width: 40px;
+            height: 40px;
+            background: #7ab05d;
+            border: 2px solid var(--text);
+            border-radius: 50%;
+            position: relative;
+            top: -20px;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 20;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+
+        .header-content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header-content p {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        .content {
+            padding: 3rem 2.5rem;
+        }
+
+        .calculator-section {
+            background: linear-gradient(135deg, #fef9f3 0%, #fff 100%);
+            padding: 2.5rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+            font-size: 0.95rem;
+            letter-spacing: 0.01em;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .currency-symbol {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 1.2rem 1.5rem 1.2rem 3rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-family: 'Manrope', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+            font-weight: 500;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(244, 162, 97, 0.15);
+        }
+
+        input::placeholder {
+            color: #cbd5e1;
+        }
+
+        .results {
+            margin-top: 3rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .results.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stress-display {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            border: 2px solid #ffd9a8;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stress-display::before {
+            content: '🏠';
+            position: absolute;
+            font-size: 120px;
+            opacity: 0.05;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .stress-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .stress-percentage {
+            font-family: 'Playfair Display', serif;
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .stress-bar-container {
+            height: 12px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 1.5rem auto 1rem;
+            max-width: 400px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stress-bar {
+            height: 100%;
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .stress-status {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            position: relative;
+        }
+
+        .stress-emoji {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .recommendation {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 2px solid #f0f0f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .recommendation h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            margin-bottom: 1.25rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .recommendation p {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .income-needed {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-top: 2rem;
+            border: 2px solid #c8e6c9;
+        }
+
+        .income-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-light);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+
+        .income-amount {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #fef9f3 0%, #fff5eb 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-top: 2.5rem;
+            border: 2px solid #ffe8d6;
+        }
+
+        .info-box p {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .info-box strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                height: 280px;
+            }
+            
+            .house {
+                transform: translateX(-50%) scale(0.8);
+            }
+            
+            .family {
+                right: 15%;
+                transform: scale(0.8);
+            }
+            
+            .tree {
+                left: 10%;
+                transform: scale(0.8);
+            }
+            
+            .header-content h1 {
+                font-size: 1.75rem;
+            }
+            
+            .stress-percentage {
+                font-size: 3.5rem;
+            }
+            
+            .income-amount {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 2rem 1.5rem;
+            }
+            
+            .calculator-section {
+                padding: 2rem 1.5rem;
+            }
+            
+            .stress-display {
+                padding: 2.5rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .hero {
+                height: 240px;
+            }
+            
+            .header-content {
+                padding: 1rem 1.5rem;
+            }
+            
+            .header-content h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header-content p {
+                font-size: 0.9rem;
+            }
+            
+            .stress-percentage {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="sky-scene">
+                <div class="cloud cloud1"></div>
+                <div class="cloud cloud2"></div>
+                <div class="cloud cloud3"></div>
+            </div>
+            
+            <div class="ground"></div>
+            
+            <div class="house">
+                <div class="house-roof"></div>
+                <div class="house-body">
+                    <div class="house-window">
+                        <div class="window-cross"></div>
+                    </div>
+                    <div class="house-window">
+                        <div class="window-cross"></div>
+                    </div>
+                    <div class="house-door"></div>
+                </div>
+            </div>
+            
+            <div class="family">
+                <div class="person">
+                    <div class="person-head"></div>
+                    <div class="person-body"></div>
+                </div>
+                <div class="person">
+                    <div class="person-head"></div>
+                    <div class="person-body"></div>
+                </div>
+                <div class="person">
+                    <div class="person-head"></div>
+                    <div class="person-body"></div>
+                </div>
+            </div>
+            
+            <div class="tree">
+                <div class="tree-leaves"></div>
+                <div class="tree-trunk"></div>
+            </div>
+            
+            <div class="header-content">
+                <h1>Mortgage Stress Calculator</h1>
+                <p>Understand your housing affordability and plan for a secure future</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="calculator-section">
+                <div class="input-group">
+                    <label for="income">Annual Gross Income</label>
+                    <div class="input-wrapper">
+                        <span class="currency-symbol">$</span>
+                        <input type="number" id="income" placeholder="80000" min="0" step="1000">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="mortgage">Monthly Mortgage Payment</label>
+                    <div class="input-wrapper">
+                        <span class="currency-symbol">$</span>
+                        <input type="number" id="mortgage" placeholder="2000" min="0" step="100">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="stress-display">
+                    <div class="stress-label">Housing Cost Ratio</div>
+                    <div class="stress-percentage" id="stressPercentage">0%</div>
+                    <div class="stress-bar-container">
+                        <div class="stress-bar" id="stressBar"></div>
+                    </div>
+                    <div class="stress-status" id="stressStatus"></div>
+                </div>
+                
+                <div class="recommendation" id="recommendation">
+                    <h3>Financial Outlook</h3>
+                    <p id="recommendationText"></p>
+                    <div id="incomeNeededSection"></div>
+                </div>
+                
+                <div class="info-box">
+                    <p><strong>Understanding mortgage stress:</strong> Financial experts recommend keeping housing costs below 30% of your gross income. This ensures you have enough breathing room for life's other important expenses—from groceries and childcare to savings and the occasional family vacation. When housing costs climb above this threshold, families may feel financially stretched, limiting their ability to save for emergencies, retirement, or future goals.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const incomeInput = document.getElementById('income');
+        const mortgageInput = document.getElementById('mortgage');
+        const results = document.getElementById('results');
+        const stressPercentage = document.getElementById('stressPercentage');
+        const stressBar = document.getElementById('stressBar');
+        const stressStatus = document.getElementById('stressStatus');
+        const recommendationText = document.getElementById('recommendationText');
+        const incomeNeededSection = document.getElementById('incomeNeededSection');
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function calculateStress() {
+            const annualIncome = parseFloat(incomeInput.value) || 0;
+            const monthlyMortgage = parseFloat(mortgageInput.value) || 0;
+            
+            if (annualIncome === 0 || monthlyMortgage === 0) {
+                results.classList.remove('visible');
+                return;
+            }
+            
+            const monthlyIncome = annualIncome / 12;
+            const stressRatio = (monthlyMortgage / monthlyIncome) * 100;
+            
+            // Update percentage display
+            stressPercentage.textContent = `${stressRatio.toFixed(1)}%`;
+            
+            // Update stress bar
+            const barWidth = Math.min(stressRatio, 100);
+            stressBar.style.width = `${barWidth}%`;
+            
+            // Color coding and messaging
+            let barColor, statusText, statusColor, emoji;
+            if (stressRatio <= 30) {
+                barColor = 'var(--success)';
+                statusText = 'Healthy & Comfortable';
+                statusColor = 'var(--success)';
+                emoji = '😊';
+            } else if (stressRatio <= 40) {
+                barColor = 'var(--warning)';
+                statusText = 'Moderate Pressure';
+                statusColor = 'var(--warning)';
+                emoji = '😐';
+            } else {
+                barColor = 'var(--danger)';
+                statusText = 'High Stress Level';
+                statusColor = 'var(--danger)';
+                emoji = '😰';
+            }
+            
+            stressBar.style.backgroundColor = barColor;
+            stressPercentage.style.color = statusColor;
+            stressStatus.innerHTML = `<span class="stress-emoji">${emoji}</span>${statusText}`;
+            stressStatus.style.color = statusColor;
+            
+            // Recommendation
+            if (stressRatio <= 30) {
+                recommendationText.innerHTML = `<strong>Great news!</strong> Your housing costs are well within the recommended range. You're maintaining excellent financial flexibility with <strong>${(100 - stressRatio).toFixed(1)}%</strong> of your income available for other expenses, savings, and building your future together.`;
+                incomeNeededSection.innerHTML = '';
+            } else {
+                const targetMonthlyIncome = monthlyMortgage / 0.30;
+                const targetAnnualIncome = targetMonthlyIncome * 12;
+                const additionalIncome = targetAnnualIncome - annualIncome;
+                
+                recommendationText.innerHTML = `Your housing costs currently exceed the recommended 30% threshold. While this doesn't mean you can't manage, it may limit your financial flexibility. Consider these paths forward: increasing household income, refinancing for better rates, or exploring more affordable housing options.`;
+                
+                incomeNeededSection.innerHTML = `
+                    <div class="income-needed">
+                        <span class="income-label">Additional annual income to reach 30% threshold:</span>
+                        <span class="income-amount">${formatCurrency(additionalIncome)}</span>
+                    </div>
+                `;
+            }
+            
+            results.classList.add('visible');
+        }
+
+        incomeInput.addEventListener('input', calculateStress);
+        mortgageInput.addEventListener('input', calculateStress);
+    </script>
+</body>
+</html>
